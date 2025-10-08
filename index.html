@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Learning to Compile: Self-Evolving Translation from IR to Assembly Code</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NeuComBack benchmark and self-evolving translation for IR-to-assembly neural compilation.">
+
+  <!-- ===== Use Bulma (your repo already has these files) ===== -->
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="static/css/index.css"> <!-- 你的自定义样式；可替换为 Nerfies 的 index.css 以更像 -->
+
+  <!-- Social meta -->
+  <meta property="og:title" content="Learning to Compile: Self-Evolving Translation from IR to Assembly Code">
+  <meta property="og:description" content="NeuComBack benchmark and self-evolving translation for IR-to-assembly neural compilation.">
+</head>
+<body>
+
+  <!-- ===== Title / Authors (centered narrow column like Nerfies) ===== -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+
+          <h1 class="title is-1 publication-title">
+            Learning to Compile: Self-Evolving Translation from IR to Assembly Code
+          </h1>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+            <a href="">Hainan Fang</a><sup>1,2</sup>,
+            </span>
+            <span class="author-block">
+            <a href="">Yuanbo Wen</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+            <a href="">Jun Bi</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+            <a href="">Yihan Wang</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+            <a href="">Tonghui He</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+            <a href="">Yanlin Tang</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+            <a href="">Di Huang</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+            <a href="">Jiaming Guo</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+            <a href="">Rui Zhang</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+            <a href="">Qi Guo</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+            <a href="">Yunji Chen</a><sup>1</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+            <sup>1</sup>Institute of Computing Technology, Chinese Academy of Sciences
+            </span>
+            <span class="author-block">
+            <sup>2</sup>University of Chinese Academy of Sciences
+            </span>
+          </div>
+<!-- 
+          <p class="mt-2">
+            <span class="tag is-dark is-medium">NeurIPS 2025</span>
+          </p> -->
+
+          <!-- Link buttons (Nerfies-style rounded dark/light buttons) -->
+          <div class="buttons is-centered mt-4 publication-links">
+            <!-- TODO: 替换为你的真实链接 -->
+            <!-- NeurIPS 2025 -->
+            <a class="button is-dark is-rounded" href="https://neurips.cc/Conferences/2025" target="_blank">
+              <span class="icon">
+                <img src="static/images/neurips-navbar-logo.svg" alt="NeurIPS 2025" style="height:1.2em; vertical-align:middle;">
+              </span>
+              <span>NeurIPS&nbsp;2025</span>
+            </a>
+            <!-- arXiv -->
+            <a class="button is-dark is-rounded" href="https://arxiv.org/abs/xxxx.xxxxx" target="_blank">
+              <span class="icon"><i class="fas fa-book-open"></i></span>
+              <span>arXiv</span>
+            </a>
+            <!-- Paper -->
+            <a class="button is-dark is-rounded" href="static/paper.pdf" target="_blank">
+              <span class="icon"><i class="fas fa-file-pdf"></i></span>
+              <span>PDF</span>
+            </a>
+            <!-- Code -->
+            <a class="button is-dark is-rounded" href="https://github.com/username/repo" target="_blank">
+              <span class="icon"><i class="fab fa-github"></i></span>
+              <span>Code</span>
+            </a>
+            <!-- Dataset -->
+            <a class="button is-dark is-rounded" href="https://huggingface.co/datasets/your-org/NeuComBack" target="_blank">
+              <span class="icon"><i class="fas fa-database"></i></span>
+              <span>Dataset</span>
+            </a>
+            <!-- BibTeX -->
+            <a class="button is-dark is-rounded" href="#bibtex">
+              <span class="icon"><i class="fas fa-quote-right"></i></span>
+              <span>BibTeX</span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Overview ===== -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column">
+          <h2 class="title is-3 has-text-centered">Overview</h2>
+          <div class="content is-size-6">
+            <p>
+              Compilers, while essential, are notoriously complex systems that demand prohibitively expensive human expertise to develop and maintain. The recent advancements in Large Language Models (LLMs) offer a compelling new paradigm: Neural Compilation, which could potentially simplify compiler development for new architectures and facilitate the discovery of innovative optimization techniques.
+              <br><br>
+              However, several critical obstacles impede its practical adoption. Firstly, a significant lack of dedicated benchmarks and robust evaluation methodologies hinders objective assessment and tracking of progress in the field. Secondly, systematically enhancing the reliability and performance of LLM-generated assembly remains a critical challenge.
+              <br><br>
+              Addressing these challenges, this paper introduces NeuComBack, a novel benchmark dataset specifically designed for IR-to-assembly compilation. Leveraging this dataset, we first define a foundational Neural Compilation workflow and conduct a comprehensive evaluation of the capabilities of recent frontier LLMs on Neural Compilation, establishing new performance baselines. We further propose a self-evolving prompt optimization method that enables LLMs to iteratively evolve their internal prompt strategies by extracting insights from prior self-debugging traces, thereby enhancing their neural compilation capabilities. 
+              <br><br>
+              Experiments demonstrate that our method significantly improves both the functional correctness and the performance of LLM-generated assembly code. Compared to baseline prompts, the functional correctness rates improved from 44% to 64% on x86_64 and from 36% to 58% on aarch64, respectively. More significantly, among the 16 correctly generated x86_64 programs using our method, 14 (87.5%) surpassed clang-O3 performance. These consistent improvements across diverse architectures (x86_64 and aarch64) and program distributions (NeuComBack L1 and L2) validate our method's superiority over conventional approaches and its potential for broader adoption in low-level neural compilation.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== NeuComBack Dataset ===== -->
+  <section id="dataset" class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column">
+  
+          <h2 class="title is-3 has-text-centered">NeuComBack Dataset</h2>
+  
+          <!-- 概述 -->
+          <div class="content is-size-6">
+            <p>
+              We construct a comprehensive dataset for the LLVM IR → Assembly (ASM) compilation task.
+              As no public dataset specifically targets IR-to-ASM translation, we adapt two established
+              C→ASM benchmarks: <code>ExeBench</code>, a widely used collection of C programs, and the Test Suite for Vectorizing Compilers (<code>TSVC</code>), a compiler performance benchmark. The distinct characteristics of these sources naturally lead to a two-tiered dataset:
+            </p>
+          </div>
+  
+          <!-- L1/L2 两级结构 -->
+          <div class="columns is-multiline">
+            <div class="column is-6">
+              <div class="box">
+                <h3 class="title is-5 mb-2">Level 1 (Fundamental Compilation, 200 tasks)</h3>
+                <p>
+                  This selection from the <code>ExeBench</code> test suite features C programs characterized by simple control flow structures. A significant portion of these programs, derived from embedded systems applications, exhibits intensive I/O operations. Conversely, complex control flows, exemplified by nested for loops, are deliberately limited. Such programs provide foundational benchmarks for assessing the fundamental correctness of the IR-to-ASM translation.
+                </p>
+              </div>
+            </div>
+            <div class="column is-6">
+              <div class="box">
+                <h3 class="title is-5 mb-2">Level 2 (Optimization Potential, 151 tasks)</h3>
+                <p>
+                  This level, drawn from the <code>TSVC</code> benchmark suite, features programs characterized by computationally simple execution paths but notable loop intricacy. Such programs provide a strong basis for assessing the optimization capabilities reflected in the generated assembly.
+                </p>
+              </div>
+            </div>
+          </div>
+  
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Method ===== -->
+  <section id="method" class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column">
+  
+          <h2 class="title is-3 has-text-centered">Method</h2>
+  
+          <!-- Pipeline 图 -->
+          <img class="image" src="static/images/overview.png" alt="Teaser for self-evolving neural compilation" style="width:100%; height:auto;">
+          <p class="has-text-grey is-size-6 mt-2 has-text-centered">
+            Figure 1: Pipeline of our automatic prompt learning method on <i>Neural Compilation</i>.
+          </p>
+  
+          <!-- Overview -->
+          <div class="content is-size-6">
+            <p>
+              Our Neural Compilation framework leverages a novel automatic prompt-learning mechanism specifically tailored to improve LLM-generated assembly code. Distinct from previous prompt evolution methods, our approach's core insight lies in learning from the LLM's complete iterative self-debugging process, which effectively enables the LLM to learn from its past practices in diagnosing and resolving complex errors in assembly code generation. Our method comprises two distinct stages: offline prompt learning and online inference. In the offline stage, the model iteratively evolves prompts based on comprehensive analysis and insights derived from past generation trials. Subsequently, in the online stage, the model utilizes these refined prompts to generate and iteratively optimize assembly code, progressively improving quality and performance.
+            </p>
+          </div>
+  
+          <!-- Offline: Prompt Learning -->
+          <div class="box">
+            <h4 class="title is-5 mb-2">Offline: Prompt Learning</h4>
+            <p class="content is-size-6 mb-2">
+              The offline learning phase focuses on automatically discovering and evolving prompts to effectively guide the LLM toward generating correct and performant assembly code.
+            </p>
+            <ol class="content is-size-6 ml-5">
+              <li>This process begins with <b>initializing</b> an empty prompt template.</li>
+              <li>Following this, <b>self-debug trials</b> are collected by using the LLM to perform a ``compilation'' process and then test the generated assembly translations; errors trigger iterative self-debugging, refining code until correctness or iteration limits are reached.</li>
+              <li>Subsequently, <b>critical insights</b> are extracted by analyzing the complete self-debug trajectories to identify error patterns and effective strategies via LLM-assisted analysis.</li>
+              <li>Finally, <b>prompt evolution</b> occurs by refining prompts through the integration of experience and insights (extracted from a batch of self-debug trials), which are then reviewed for clarity and effectiveness.</li>
+            </ol>
+          </div>
+  
+          <!-- Online: Inference -->
+          <div class="box">
+            <h4 class="title is-5 mb-2">Online: Inference</h4>
+            <p class="content is-size-6 mb-2">
+              The online inference stage deploys evolved prompts from offline learning to iteratively generate and optimize assembly code.
+            </p>
+            <ol class="content is-size-6 ml-5">
+              <li>First, the <b>initial assembly generation</b> is performed, using evolved prompts to generate initial assembly code from IR. This initial assembly is then tested, and iterative self-debugging is triggered until functional correctness is achieved; if self-debug fails after all attempts, the generation is terminated, and a failure is reported.</li>
+              <li>Next, <b>iterative optimization</b> is applied to further refine the initial assembly code, with evolved prompts still provided to minimize error introduction. Each optimization iteration includes testing and self-debugging as necessary to ensure continued correctness.</li>
+              <li>Finally, the process <b>outputs</b> the optimized assembly code, demonstrating competitive or superior performance compared to compiler-generated code.</li>
+            </ol>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Main Results ===================== -->
+  <section id="main-results" class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column">
+  
+          <h2 class="title is-3 has-text-centered">Main Results</h2>
+  
+          <!-- ===== 1) Baseline: Existing LLMs on NeuComBack-L2 (x86_64) ===== -->
+          <div class="box">
+            <h3 class="title is-5 mb-2">Empirical Evaluation of Existing LLMs</h3>
+            <p class="content is-size-6">
+              We benchmark state-of-the-art LLMs on <b>NeuComBack-L2</b> (x86_64, 151 cases) to establish baselines for
+              <i>Neural Compilation</i>. Reasoning-enhanced models show clear advantages: <b>DeepSeek-R1</b> achieves the strongest baseline
+              with <b>45.70% ACC</b> and <b>21.85% ACC+Perf</b>, while <b>O3-Mini</b>/<b>O1</b> also perform notably better than
+              non-reasoning-specialized models.
+            </p>
+            <div class="table-container">
+              <table class="table is-striped is-hoverable is-fullwidth">
+                <caption class="has-text-weight-semibold">Table 1: Baseline performance of advanced LLMs, NeuComBack-L2 (overall 151 cases), x86_64</caption>
+                <thead>
+                  <tr><th>Model</th><th>ACC (%)</th><th>ACC+Perf (%)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>GPT-4o</td><td>1.99 (3/151)</td><td>0.66 (1/151)</td></tr>
+                  <tr><td>O3-Mini</td><td>21.19 (32/151)</td><td>5.30 (8/151)</td></tr>
+                  <tr><td>O1</td><td>19.87 (30/151)</td><td>5.30 (8/151)</td></tr>
+                  <tr><td>DeepSeek-V3</td><td>14.57 (22/151)</td><td>3.31 (5/151)</td></tr>
+                  <tr><td><b>DeepSeek-R1</b></td><td><b>45.70 (69/151)</b></td><td><b>21.85 (33/151)</b></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="content is-size-6 has-text-grey">
+              ACC: functional correctness; ACC+Perf: correctness with runtime better than <code>clang -O3</code>.
+            </p>
+          </div>
+  
+          <!-- ===== 2) Our Method on NeuComBack (x86_64) ===== -->
+          <div class="box">
+            <h3 class="title is-5 mb-2">Effect of Self-Evolving Prompt Optimization</h3>
+            <p class="content is-size-6">
+              Using <b>DeepSeek-R1</b> on <b>NeuComBack-L1</b> (x86_64), our learned prompt greatly boosts correctness:
+              <b>50.00% → 80.00% ACC</b> on the test set (40 samples), a relative improvement of ~60%.
+            </p>
+            <div class="table-container">
+              <table class="table is-striped is-hoverable is-fullwidth">
+                <caption class="has-text-weight-semibold">Table 2: Performance of automatic prompt learning vs. baseline prompt on NeuComBack-L1 (test set, 40 samples), x86_64, DeepSeek-R1.</caption>
+                <thead>
+                  <tr><th>Method</th><th>ACC (%)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Baseline</td><td>50.00 (20/40)</td></tr>
+                  <tr><td><b>Our</b></td><td><b>80.00 (32/40)</b></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="content is-size-6">
+              On <b>NeuComBack-L2</b> (x86_64, test 25), our learned prompt improves initial correctness
+              from <b>44.00% → 64.00%</b> and boosts high-performance solutions from <b>24.00% → 40.00%</b>.
+              After two rounds of iterative optimization, the advantage amplifies: <b>ACC+Perf 28.00% → 56.00%</b>
+              (<b>2×</b> relative improvement). Notably, among 16 correct programs from our method,
+              <b>14 (87.5%)</b> surpass <code>-O3</code>.
+            </p>
+            <div class="table-container">
+              <table class="table is-striped is-hoverable is-fullwidth">
+                <caption class="has-text-weight-semibold">Table 3: Performance of automatic prompt learning vs. baseline prompt on NeuComBack-L2 (test set, 25 samples), x86_64, DeepSeek-R1.</caption>
+                <thead>
+                  <tr><th>Method &amp; Stage</th><th>ACC (%)</th><th>ACC+Perf (%)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><b>Baseline Prompt</b> — After Initial Generation</td><td>44.00 (11/25)</td><td>24.00 (6/25)</td></tr>
+                  <tr><td><b>Baseline Prompt</b> — After 2 Rounds Iter. Opt.</td><td>--</td><td>28.00 (7/25)</td></tr>
+                  <tr><td><b>Our (Learned Prompt)</b> — After Initial Generation</td><td><b>64.00 (16/25)</b></td><td><b>40.00 (10/25)</b></td></tr>
+                  <tr><td><b>Our (Learned Prompt)</b> — After 2 Rounds Iter. Opt.</td><td>--</td><td><b>56.00 (14/25)</b></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ===== 3) aarch64 ===== -->
+          <div class="box">
+            <h3 class="title is-5 mb-2">Generalization to aarch64</h3>
+            <p class="content is-size-6">
+              On <b>aarch64</b> (NeuComBack-L2, test 25), our method substantially improves both correctness and performance:
+              <b>ACC 36.00% → 72.00%</b> and <b>ACC+Perf 8.00% → 28.00%</b>, showing strong applicability across different instruction sets.
+            </p>
+            <div class="table-container">
+              <table class="table is-striped is-hoverable is-fullwidth">
+                <caption class="has-text-weight-semibold">Table 4: Effectiveness of automatic prompt learning, DeepSeekR1, NeuComBack-L2 (test set, 25 samples), aarch64</caption>
+                <thead>
+                  <tr><th>Method</th><th>ACC (%)</th><th>ACC+Perf (%)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Baseline</td><td>36.00 (9/25)</td><td>8.00 (2/25)</td></tr>
+                  <tr><td><b>Our</b></td><td><b>72.00 (18/25)</b></td><td><b>28.00 (7/25)</b></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+  
+          <!-- ===== 4) Transferability across Distributions ===== -->
+          <div class="box">
+            <h3 class="title is-5 mb-2">Transferability across Data Distributions</h3>
+            <p class="content is-size-6">
+              Prompts learned on <b>NeuComBack-L2</b> transfer positively to <b>NeuComBack-L1</b> (x86_64):
+              test ACC improves from <b>50.00% → 67.50%</b> without additional learning, and overall ACC reaches
+              <b>74.50%</b> across all 200 L1 cases.
+            </p>
+            <div class="table-container">
+              <table class="table is-striped is-hoverable is-fullwidth">
+                <caption class="has-text-weight-semibold">Table 5: Performance on NeuComBack-L1 (x86_64, DeepSeek-R1) using different prompt strategies, showing test set and overall ACC</caption>
+                <thead>
+                  <tr><th>Prompt Strategy</th><th>Test Set ACC (%)</th><th>Overall ACC (%)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Default Prompt</td><td>50.00 (20/40)</td><td>54.50 (109/200)</td></tr>
+                  <tr><td><b>Learned on NeuComBack-L1</b></td><td><b>80.00 (32/40)</b></td><td>−</td></tr>
+                  <tr><td><b>Learned on NeuComBack-L2</b></td><td><b>67.50 (27/40)</b></td><td><b>74.50 (149/200)</b></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+  
+          <!-- ===== 5) Fewer Self-Debug Rounds ===== -->
+          <div class="box">
+            <h3 class="title is-5 mb-2">Efficiency: Fewer Self-Debug Rounds</h3>
+            <p class="content is-size-6">
+              For correctly solved programs, our method consistently reduces the average number of self-debug rounds across
+              architectures and datasets, indicating faster convergence to correct and performant assembly.
+            </p>
+            <div class="table-container">
+              <table class="table is-striped is-hoverable is-fullwidth">
+                <caption class="has-text-weight-semibold">Table 6: Average self-debug rounds for successfully compiled programs by DeepSeek-R1 on test sets, comparing our method with the baseline. Lower is better.</caption>
+                <thead>
+                  <tr>
+                    <th>Architecture</th><th>Dataset</th><th>Max Debug Rounds</th><th>Baseline</th><th>Our Method</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td rowspan="2">x86_64</td><td>NeuComBack-L1</td><td>1</td><td>0.90</td><td><b>0.28</b></td></tr>
+                  <tr>                              <td>NeuComBack-L2</td><td>2</td><td>1.09</td><td><b>0.25</b></td></tr>
+                  <tr><td>aarch64</td><td>NeuComBack-L2</td><td>4</td><td>1.44</td><td><b>1.22</b></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+  
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== BibTeX ===== -->
+  <section id="bibtex" class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column">
+          <h2 class="title is-3 has-text-centered">BibTeX</h2>
+<pre>
+@inproceedings{fang2025neucomback,
+  title     = {Learning to Compile: Self-Evolving Translation from IR to Assembly Code},
+  author    = {Hainan Fang, Yuanbo Wen, Jun Bi, Yihan Wang, Tonghui He, Yanlin Tang, Di Huang, Jiaming Guo, Rui Zhang, Qi Guo, Yunji Chen},
+  booktitle = {The Thirty-Ninth Annual Conference on Neural Information Processing Systems},
+  year      = {2025},
+  note      = {NeurIPS 2025}
+}
+</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<footer class="footer has-text-centered has-text-grey-dark">
+  <div class="content is-small">
+    <p>
+      This website is licensed under a <a rel="license"
+                                          href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+      Commons Attribution-ShareAlike 4.0 International License</a>.
+    </p>
+    <p>
+      Thanks for the website template
+      <a href="https://github.com/nerfies/nerfies.github.io" target="_blank">Nerfies</a>.
+    </p>
+  </div>
+</footer>
+
+
+  <!-- ===== Scripts (你仓库已有这些 JS) ===== -->
+  <script src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/bulma-carousel.min.js"></script>
+  <script src="static/js/bulma-slider.min.js"></script>
+  <script src="static/js/index.js"></script>
+  <!-- ⚠️ 如果模板自带 analytics，请删除或换成你自己的 -->
+</body>
+</html>
