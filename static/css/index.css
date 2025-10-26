@@ -165,3 +165,38 @@ body {
   padding: 1.5rem;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
+
+/* ===== Code blocks: constrained width + horizontal scroll ===== */
+.examples-narrow {
+    /* 让整块示例看起来不占满全宽；数值可按需调整 */
+    max-width: 920px;
+    margin: 0 auto;
+  }
+  
+  .code-scroller {
+    overflow-x: auto;               /* 横向滚动 */
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: #fafafa;            /* 轻背景，便于阅读 */
+  }
+  
+  /* 让代码本身有最小宽度——在小屏时触发横向滚动，而不是自动换行 */
+  .code-scroller pre {
+    min-width: 760px;               /* 可改 680~900 之间 */
+    padding: 1rem;
+    margin: 0;
+    white-space: pre;               /* 保持原始格式 */
+  }
+  
+  /* 可选：缩小 details 的 summary 点击区域的默认外边距 */
+  .examples-details summary {
+    cursor: pointer;
+    margin-bottom: .5rem;
+  }
+  
+  /* 可选：表格与代码块间距协调 */
+  .examples-box .content {
+    margin-top: .5rem;
+  }
+  

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Learning to Compile: Self-Evolving Translation from IR to Assembly Code</title>
+  <title>QiMeng-NeuComBack: Self-Evolving Translation from IR to Assembly Code</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="NeuComBack benchmark and self-evolving translation for IR-to-assembly neural compilation.">
 
@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="static/css/index.css"> <!-- 你的自定义样式；可替换为 Nerfies 的 index.css 以更像 -->
 
   <!-- Social meta -->
-  <meta property="og:title" content="Learning to Compile: Self-Evolving Translation from IR to Assembly Code">
+  <meta property="og:title" content="QiMeng-NeuComBack: Self-Evolving Translation from IR to Assembly Code">
   <meta property="og:description" content="NeuComBack benchmark and self-evolving translation for IR-to-assembly neural compilation.">
 </head>
 <body>
@@ -26,7 +26,7 @@
         <div class="column has-text-centered">
 
           <h1 class="title is-1 publication-title">
-            Learning to Compile: Self-Evolving Translation from IR to Assembly Code
+            QiMeng-NeuComBack: Self-Evolving Translation from IR to Assembly Code
           </h1>
 
           <div class="is-size-5 publication-authors">
@@ -46,7 +46,7 @@
             <a href="">Tonghui He</a><sup>1, 2</sup>,
             </span>
             <span class="author-block">
-            <a href="">Yanlin Tang</a><sup>1, 3</sup>,
+            <a href="">Yanlin Tang</a><sup>1, 2</sup>,
             </span>
             <span class="author-block">
             <a href="">Di Huang</a><sup>1</sup>,
@@ -61,19 +61,16 @@
             <a href="">Qi Guo</a><sup>1</sup>,
             </span>
             <span class="author-block">
-            <a href="">Yunji Chen</a><sup>1</sup>
+            <a href="">Yunji Chen</a><sup>1, 2</sup>
             </span>
           </div>
 
           <div class="is-size-5 publication-authors">
             <span class="author-block">
-            <sup>1</sup>SKL of Processors, Institute of Computing Technology, Chinese Academy of Sciences
+            <sup>1</sup>State Key Lab of Processors, Institute of Computing Technology, Chinese Academy of Sciences
             </span>
             <span class="author-block">
             <sup>2</sup>University of Chinese Academy of Sciences
-            </span>
-            <span class="author-block">
-            <sup>3</sup>University of Science and Technology of China
             </span>
           </div>
 <!-- 
@@ -168,7 +165,7 @@
               <div class="box">
                 <h3 class="title is-5 mb-2">Level 1 (Fundamental Compilation, 200 tasks)</h3>
                 <p>
-                  This selection from the <code>ExeBench</code> test suite features C programs characterized by simple control flow structures. A significant portion of these programs, derived from embedded systems applications, exhibits intensive I/O operations. Conversely, complex control flows, exemplified by nested for loops, are deliberately limited. Such programs provide foundational benchmarks for assessing the fundamental correctness of the IR-to-ASM translation.
+                  This selection from the <code>ExeBench</code> test suite covers a broad variety of real-world C programs and features diverse control-flow patterns. A significant portion of these programs, derived from embedded systems applications, exhibits intensive I/O operations. While extremely complex control flow (e.g., deep recursion, concurrency) is underrepresented in available sources, L1 is designed with a breadth-first focus to assess general-purpose functional correctness.
                 </p>
               </div>
             </div>
@@ -391,6 +388,446 @@
       </div>
     </div>
   </section>
+<!-- ===== Examples: IR → Assembly ===== -->
+<section id="examples" class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column">
+  
+          <h2 class="title is-3 has-text-centered">Examples: IR → Assembly</h2>
+          <!-- <p class="has-text-centered has-text-grey is-size-6 mb-5">
+            Two end-to-end translations on x86_64. Click to expand IR / ASM.
+          </p> -->
+  
+          <!-- ========== Example 1 ========== -->
+          <div class="box examples-box">
+            <div class="level examples-narrow">
+              <div class="level-left">
+                <h3 class="title is-5 mb-0">Example&nbsp;1：<code>s331</code>（x86_64）</h3>
+              </div>
+              <div class="level-right">
+                <span class="tag is-dark is-light">IR → ASM</span>
+              </div>
+            </div>
+  
+            <div class="content is-size-6 examples-narrow">
+              <details class="examples-details" open>
+                <summary><strong>Input IR (LLVM)</strong></summary>
+                <div class="code-scroller">
+                  <pre><code class="language-llvm">; ModuleID = 'tmp/s331_inner.c'
+source_filename = "tmp/s331_inner.c"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+@a = external global [32000 x float], align 64
+@b = external global [32000 x float], align 64
+@c = external global [32000 x float], align 64
+@d = external global [32000 x float], align 64
+@e = external global [32000 x float], align 64
+@aa = external global [256 x [256 x float]], align 64
+@bb = external global [256 x [256 x float]], align 64
+@cc = external global [256 x [256 x float]], align 64
+
+; Function Attrs: nounwind uwtable
+define dso_local i32 @s331_inner() local_unnamed_addr #0 {
+  br label %1
+
+1:                                                ; preds = %0, %5
+  %2 = phi i32 [ 0, %0 ], [ %8, %5 ]
+  br label %10
+
+3:                                                ; preds = %5
+  %4 = add nsw i32 %41, 1
+  ret i32 %4
+
+5:                                                ; preds = %10
+  %6 = sitofp i32 %41 to float
+  %7 = tail call i32 @dummy(ptr noundef nonnull @a, ptr noundef nonnull @b, ptr noundef nonnull @c, ptr noundef nonnull @d, ptr noundef nonnull @e, ptr noundef nonnull @aa, ptr noundef nonnull @bb, ptr noundef nonnull @cc, float noundef %6) #2
+  %8 = add nuw nsw i32 %2, 1
+  %9 = icmp eq i32 %8, 100000
+  br i1 %9, label %3, label %1, !llvm.loop !5
+
+10:                                               ; preds = %10, %1
+  %11 = phi i64 [ 0, %1 ], [ %42, %10 ]
+  %12 = phi i32 [ -1, %1 ], [ %41, %10 ]
+  %13 = getelementptr inbounds [32000 x float], ptr @a, i64 0, i64 %11
+  %14 = load float, ptr %13, align 4, !tbaa !7
+  %15 = fcmp olt float %14, 0.000000e+00
+  %16 = trunc i64 %11 to i32
+  %17 = select i1 %15, i32 %16, i32 %12
+  %18 = add nuw nsw i64 %11, 1
+  %19 = getelementptr inbounds [32000 x float], ptr @a, i64 0, i64 %18
+  %20 = load float, ptr %19, align 4, !tbaa !7
+  %21 = fcmp olt float %20, 0.000000e+00
+  %22 = trunc i64 %18 to i32
+  %23 = select i1 %21, i32 %22, i32 %17
+  %24 = add nuw nsw i64 %11, 2
+  %25 = getelementptr inbounds [32000 x float], ptr @a, i64 0, i64 %24
+  %26 = load float, ptr %25, align 4, !tbaa !7
+  %27 = fcmp olt float %26, 0.000000e+00
+  %28 = trunc i64 %24 to i32
+  %29 = select i1 %27, i32 %28, i32 %23
+  %30 = add nuw nsw i64 %11, 3
+  %31 = getelementptr inbounds [32000 x float], ptr @a, i64 0, i64 %30
+  %32 = load float, ptr %31, align 4, !tbaa !7
+  %33 = fcmp olt float %32, 0.000000e+00
+  %34 = trunc i64 %30 to i32
+  %35 = select i1 %33, i32 %34, i32 %29
+  %36 = add nuw nsw i64 %11, 4
+  %37 = getelementptr inbounds [32000 x float], ptr @a, i64 0, i64 %36
+  %38 = load float, ptr %37, align 4, !tbaa !7
+  %39 = fcmp olt float %38, 0.000000e+00
+  %40 = trunc i64 %36 to i32
+  %41 = select i1 %39, i32 %40, i32 %35
+  %42 = add nuw nsw i64 %11, 5
+  %43 = icmp eq i64 %42, 32000
+  br i1 %43, label %5, label %10, !llvm.loop !11
+}
+
+declare i32 @dummy(ptr noundef, ptr noundef, ptr noundef, ptr noundef, ptr noundef, ptr noundef, ptr noundef, ptr noundef, float noundef) local_unnamed_addr #1
+
+attributes #0 = { nounwind uwtable "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #1 = { "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0, !1, !2, !3}
+!llvm.ident = !{!4}
+
+!0 = !{i32 1, !"wchar_size", i32 4}
+!1 = !{i32 8, !"PIC Level", i32 2}
+!2 = !{i32 7, !"PIE Level", i32 2}
+!3 = !{i32 7, !"uwtable", i32 2}
+!4 = !{!"clang version 17.0.6"}
+!5 = distinct !{!5, !6}
+!6 = !{!"llvm.loop.mustprogress"}
+!7 = !{!8, !8, i64 0}
+!8 = !{!"float", !9, i64 0}
+!9 = !{!"omnipotent char", !10, i64 0}
+!10 = !{!"Simple C/C++ TBAA"}
+!11 = distinct !{!11, !6}
+                  </code></pre>
+                </div>
+              </details>
+  
+              <details class="examples-details">
+                <summary><strong>Generated Assembly (x86_64)</strong></summary>
+                <div class="code-scroller">
+                  <pre><code class="language-nasm">.text
+.globl s331_inner
+.type s331_inner, @function
+s331_inner:
+    pushq %rbp
+    movq %rsp, %rbp
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    leaq a(%rip), %r14
+    xorl %r12d, %r12d
+    pxor %xmm1, %xmm1
+
+outer_loop:
+    xorl %eax, %eax
+    movl $-1, %r13d
+
+.align 16
+vector_loop:
+    movaps (%r14, %rax, 4), %xmm0
+    cmpltps %xmm1, %xmm0
+    movmskps %xmm0, %ecx
+    testl %ecx, %ecx
+    jz .Lno_update0
+    bsrl %ecx, %ecx
+    leal (%rax, %rcx), %edx
+    cmpl %r13d, %edx
+    cmovgl %edx, %r13d
+.Lno_update0:
+
+    movaps 16(%r14, %rax, 4), %xmm2
+    cmpltps %xmm1, %xmm2
+    movmskps %xmm2, %ecx
+    testl %ecx, %ecx
+    jz .Lno_update1
+    bsrl %ecx, %ecx
+    leal 4(%rax, %rcx), %edx
+    cmpl %r13d, %edx
+    cmovgl %edx, %r13d
+.Lno_update1:
+
+    addq $8, %rax
+    cmpq $32000, %rax
+    jl vector_loop
+
+    cvtsi2ssl %r13d, %xmm0
+    subq $32, %rsp
+    leaq a(%rip), %rdi
+    leaq b(%rip), %rsi
+    leaq c(%rip), %rdx
+    leaq d(%rip), %rcx
+    leaq e(%rip), %r8
+    leaq aa(%rip), %r9
+    leaq bb(%rip), %rax
+    movq %rax, (%rsp)
+    leaq cc(%rip), %rax
+    movq %rax, 8(%rsp)
+    movss %xmm0, 16(%rsp)
+    call dummy@PLT
+    addq $32, %rsp
+
+    incl %r12d
+    cmpl $100000, %r12d
+    jne outer_loop
+
+    movl %r13d, %eax
+    addl $1, %eax
+    popq %r14
+    popq %r13
+    popq %r12
+    popq %rbp
+    ret
+
+.size s331_inner, .-s331_inner
+
+.section .bss
+.comm a, 128000, 64
+.comm b, 128000, 64
+.comm c, 128000, 64
+.comm d, 128000, 64
+.comm e, 128000, 64
+.comm aa, 262144, 64
+.comm bb, 262144, 64
+.comm cc, 262144, 64
+                  </code></pre>
+                </div>
+              </details>
+            </div>
+          </div>
+  
+          <!-- ========== Example 2 ========== -->
+          <div class="box examples-box">
+            <div class="level examples-narrow">
+              <div class="level-left">
+                <h3 class="title is-5 mb-0">Example&nbsp;2：<code>s332</code>（x86_64）</h3>
+              </div>
+              <div class="level-right">
+                <span class="tag is-dark is-light">IR → ASM</span>
+              </div>
+            </div>
+  
+            <div class="content is-size-6 examples-narrow">
+              <details class="examples-details" open>
+                <summary><strong>Input IR (LLVM)</strong></summary>
+                <div class="code-scroller">
+                  <pre><code class="language-llvm">; ModuleID = 'tmp/s332_inner.c'
+source_filename = "tmp/s332_inner.c"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+@a = external global [32000 x float], align 64
+@b = external global [32000 x float], align 64
+@c = external global [32000 x float], align 64
+@d = external global [32000 x float], align 64
+@e = external global [32000 x float], align 64
+@aa = external global [256 x [256 x float]], align 64
+@bb = external global [256 x [256 x float]], align 64
+@cc = external global [256 x [256 x float]], align 64
+
+; Function Attrs: nounwind uwtable
+define dso_local float @s332_inner(i32 noundef %0) local_unnamed_addr #0 {
+  %2 = sitofp i32 %0 to float
+  br label %3
+
+3:                                                ; preds = %1, %37
+  %4 = phi i32 [ 0, %1 ], [ %43, %37 ]
+  br label %5
+
+5:                                                ; preds = %30, %3
+  %6 = phi i64 [ 0, %3 ], [ %31, %30 ]
+  %7 = getelementptr inbounds [32000 x float], ptr @a, i64 0, i64 %6
+  %8 = load float, ptr %7, align 4, !tbaa !5
+  %9 = fcmp ogt float %8, %2
+  br i1 %9, label %33, label %10
+
+10:                                               ; preds = %5
+  %11 = add nuw nsw i64 %6, 1
+  %12 = getelementptr inbounds [32000 x float], ptr @a, i64 0, i64 %11
+  %13 = load float, ptr %12, align 4, !tbaa !5
+  %14 = fcmp ogt float %13, %2
+  br i1 %14, label %33, label %15
+
+15:                                               ; preds = %10
+  %16 = add nuw nsw i64 %6, 2
+  %17 = getelementptr inbounds [32000 x float], ptr @a, i64 0, i64 %16
+  %18 = load float, ptr %17, align 4, !tbaa !5
+  %19 = fcmp ogt float %18, %2
+  br i1 %19, label %33, label %20
+
+20:                                               ; preds = %15
+  %21 = add nuw nsw i64 %6, 3
+  %22 = getelementptr inbounds [32000 x float], ptr @a, i64 0, i64 %21
+  %23 = load float, ptr %22, align 4, !tbaa !5
+  %24 = fcmp ogt float %23, %2
+  br i1 %24, label %33, label %25
+
+25:                                               ; preds = %20
+  %26 = add nuw nsw i64 %6, 4
+  %27 = getelementptr inbounds [32000 x float], ptr @a, i64 0, i64 %26
+  %28 = load float, ptr %27, align 4, !tbaa !5
+  %29 = fcmp ogt float %28, %2
+  br i1 %29, label %33, label %30
+
+30:                                               ; preds = %25
+  %31 = add nuw nsw i64 %6, 5
+  %32 = icmp eq i64 %31, 32000
+  br i1 %32, label %37, label %5, !llvm.loop !9
+
+33:                                               ; preds = %25, %20, %15, %10, %5
+  %34 = phi i64 [ %6, %5 ], [ %11, %10 ], [ %16, %15 ], [ %21, %20 ], [ %26, %25 ]
+  %35 = phi float [ %8, %5 ], [ %13, %10 ], [ %18, %15 ], [ %23, %20 ], [ %28, %25 ]
+  %36 = trunc i64 %34 to i32
+  br label %37
+
+37:                                               ; preds = %30, %33
+  %38 = phi float [ %35, %33 ], [ -1.000000e+00, %30 ]
+  %39 = phi i32 [ %36, %33 ], [ -2, %30 ]
+  %40 = sitofp i32 %39 to float
+  %41 = fadd float %38, %40
+  %42 = tail call i32 @dummy(ptr noundef nonnull @a, ptr noundef nonnull @b, ptr noundef nonnull @c, ptr noundef nonnull @d, ptr noundef nonnull @e, ptr noundef nonnull @aa, ptr noundef nonnull @bb, ptr noundef nonnull @cc, float noundef %41) #2
+  %43 = add nuw nsw i32 %4, 1
+  %44 = icmp eq i32 %43, 100000
+  br i1 %44, label %45, label %3, !llvm.loop !11
+
+45:                                               ; preds = %37
+  ret float %38
+}
+
+declare i32 @dummy(ptr noundef, ptr noundef, ptr noundef, ptr noundef, ptr noundef, ptr noundef, ptr noundef, ptr noundef, float noundef) local_unnamed_addr #1
+
+attributes #0 = { nounwind uwtable "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #1 = { "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0, !1, !2, !3}
+!llvm.ident = !{!4}
+
+!0 = !{i32 1, !"wchar_size", i32 4}
+!1 = !{i32 8, !"PIC Level", i32 2}
+!2 = !{i32 7, !"PIE Level", i32 2}
+!3 = !{i32 7, !"uwtable", i32 2}
+!4 = !{!"clang version 17.0.6"}
+!5 = !{!6, !6, i64 0}
+!6 = !{!"float", !7, i64 0}
+!7 = !{!"omnipotent char", !8, i64 0}
+!8 = !{!"Simple C/C++ TBAA"}
+!9 = distinct !{!9, !10}
+!10 = !{!"llvm.loop.mustprogress"}
+!11 = distinct !{!11, !10}
+                  </code></pre>
+                </div>
+              </details>
+  
+              <details class="examples-details">
+                <summary><strong>Generated Assembly (x86_64)</strong></summary>
+                <div class="code-scroller">
+                  <pre><code class="language-nasm">.section .text
+.globl s332_inner
+.type s332_inner, @function
+s332_inner:
+    pushq %rbp
+    movq %rsp, %rbp
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %rbx
+    subq $16, %rsp
+    movaps %xmm6, -16(%rbp)
+    movaps %xmm7, -32(%rbp)
+    leaq a(%rip), %r14
+    cvtsi2ssl %edi, %xmm6
+    xorl %r12d, %r12d
+
+.Louter_loop:
+    cmpl $100000, %r12d
+    jge .Lend_outer_loop
+    xorq %r13, %r13
+    movq $-2, %rbx
+    movss .LC0(%rip), %xmm7
+
+.Linner_loop:
+    cmpq $32000, %r13
+    jge .Lexit_inner_loop
+    mov %r13d, %edx
+    leaq (%r14,%rdx,4), %rcx
+    movups (%rcx), %xmm0
+    movaps %xmm0, %xmm1
+    cmpps $0x1E, %xmm6, %xmm1
+    movmskps %xmm1, %eax
+    testl %eax, %eax
+    jnz .Lfound_simd
+    movss 16(%rcx), %xmm0
+    comiss %xmm6, %xmm0
+    ja .Lfound_4
+    addq $5, %r13
+    jmp .Linner_loop
+
+.Lfound_simd:
+    bsfl %eax, %eax
+    movss (%rcx,%rax,4), %xmm7
+    leaq (%r13,%rax), %rbx
+    jmp .Lexit_inner_loop
+
+.Lfound_4:
+    leaq 4(%r13), %rbx
+    movss 16(%rcx), %xmm7
+
+.Lexit_inner_loop:
+    cvtsi2ssl %ebx, %xmm0
+    addss %xmm7, %xmm0
+    leaq a(%rip), %rdi
+    leaq b(%rip), %rsi
+    leaq c(%rip), %rdx
+    leaq d(%rip), %rcx
+    leaq e(%rip), %r8
+    leaq aa(%rip), %r9
+    leaq bb(%rip), %r10
+    leaq cc(%rip), %r11
+    subq $24, %rsp
+    movq %r10, (%rsp)
+    movq %r11, 8(%rsp)
+    movss %xmm0, 16(%rsp)
+    call dummy@PLT
+    addq $24, %rsp
+    incl %r12d
+    jmp .Louter_loop
+
+.Lend_outer_loop:
+    movaps %xmm7, %xmm0
+    movaps -32(%rbp), %xmm7
+    movaps -16(%rbp), %xmm6
+    addq $16, %rsp
+    popq %rbx
+    popq %r14
+    popq %r13
+    popq %r12
+    popq %rbp
+    ret
+.size s332_inner, .-s332_inner
+
+.section .rodata
+.align 4
+.LC0:
+    .long 0xbf800000
+                    
+                  </code></pre>
+                </div>
+              </details>
+            </div>
+          </div>
+  
+        </div>
+      </div>
+    </div>
+  </section>
+  
 
   <!-- ===== BibTeX ===== -->
   <section id="bibtex" class="section">
@@ -400,7 +837,7 @@
           <h2 class="title is-3 has-text-centered">BibTeX</h2>
 <pre>
 @inproceedings{fang2025neucomback,
-  title     = {Learning to Compile: Self-Evolving Translation from IR to Assembly Code},
+  title     = {QiMeng-NeuComBack: Self-Evolving Translation from IR to Assembly Code},
   author    = {Hainan Fang, Yuanbo Wen, Jun Bi, Yihan Wang, Tonghui He, Yanlin Tang, Di Huang, Jiaming Guo, Rui Zhang, Qi Guo, Yunji Chen},
   booktitle = {The Thirty-Ninth Annual Conference on Neural Information Processing Systems},
   year      = {2025},
